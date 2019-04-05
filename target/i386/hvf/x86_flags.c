@@ -64,7 +64,7 @@
     target_ulong temp = ((lf_carries) & (LF_MASK_AF)) | \
     (((lf_carries) >> (size - 2)) << LF_BIT_PO); \
     env->hvf_emul->lflags.result = (target_ulong)(int##size##_t)(lf_result); \
-    if ((size) == 32) { \
+    if ((size) == 64 || (size) == 32) { \
         temp = ((lf_carries) & ~(LF_MASK_PDB | LF_MASK_SD)); \
     } else if ((size) == 16) { \
         temp = ((lf_carries) & (LF_MASK_AF)) | ((lf_carries) << 16); \
@@ -83,6 +83,8 @@
     SET_FLAGS_OSZAPC_SIZE(16, carries, result)
 #define SET_FLAGS_OSZAPC_32(carries, result) \
     SET_FLAGS_OSZAPC_SIZE(32, carries, result)
+#define SET_FLAGS_OSZAPC_64(carries, result) \
+    SET_FLAGS_OSZAPC_SIZE(64, carries, result)
 
 /* ******************* */
 /* OSZAP */
@@ -91,7 +93,7 @@
 #define SET_FLAGS_OSZAP_SIZE(size, lf_carries, lf_result) { \
     target_ulong temp = ((lf_carries) & (LF_MASK_AF)) | \
     (((lf_carries) >> (size - 2)) << LF_BIT_PO); \
-    if ((size) == 32) { \
+    if ((size) == 64 || (size) == 32) { \
         temp = ((lf_carries) & ~(LF_MASK_PDB | LF_MASK_SD)); \
     } else if ((size) == 16) { \
         temp = ((lf_carries) & (LF_MASK_AF)) | ((lf_carries) << 16); \
@@ -113,6 +115,8 @@
     SET_FLAGS_OSZAP_SIZE(16, carries, result)
 #define SET_FLAGS_OSZAP_32(carries, result) \
     SET_FLAGS_OSZAP_SIZE(32, carries, result)
+#define SET_FLAGS_OSZAP_64(carries, result) \
+    SET_FLAGS_OSZAP_SIZE(64, carries, result)
 
 void SET_FLAGS_OxxxxC(CPUX86State *env, uint32_t new_of, uint32_t new_cf)
 {
@@ -120,6 +124,12 @@ void SET_FLAGS_OxxxxC(CPUX86State *env, uint32_t new_of, uint32_t new_cf)
     env->hvf_emul->lflags.auxbits &= ~(LF_MASK_PO | LF_MASK_CF);
     env->hvf_emul->lflags.auxbits |= (temp_po << LF_BIT_PO) |
                                      (new_cf << LF_BIT_CF);
+}
+
+void SET_FLAGS_OSZAPC_SUB64(CPUX86State *env, uint64_t v1, uint64_t v2,
+                            uint64_t diff)
+{
+    SET_FLAGS_OSZAPC_64(SUB_COUT_VEC(v1, v2, diff), diff);
 }
 
 void SET_FLAGS_OSZAPC_SUB32(CPUX86State *env, uint32_t v1, uint32_t v2,
@@ -140,6 +150,12 @@ void SET_FLAGS_OSZAPC_SUB8(CPUX86State *env, uint8_t v1, uint8_t v2,
     SET_FLAGS_OSZAPC_8(SUB_COUT_VEC(v1, v2, diff), diff);
 }
 
+void SET_FLAGS_OSZAPC_ADD64(CPUX86State *env, uint64_t v1, uint64_t v2,
+                            uint64_t diff)
+{
+    SET_FLAGS_OSZAPC_64(ADD_COUT_VEC(v1, v2, diff), diff);
+}
+
 void SET_FLAGS_OSZAPC_ADD32(CPUX86State *env, uint32_t v1, uint32_t v2,
                             uint32_t diff)
 {
@@ -156,6 +172,12 @@ void SET_FLAGS_OSZAPC_ADD8(CPUX86State *env, uint8_t v1, uint8_t v2,
                             uint8_t diff)
 {
     SET_FLAGS_OSZAPC_8(ADD_COUT_VEC(v1, v2, diff), diff);
+}
+
+void SET_FLAGS_OSZAP_SUB64(CPUX86State *env, uint64_t v1, uint64_t v2,
+                            uint64_t diff)
+{
+    SET_FLAGS_OSZAP_64(SUB_COUT_VEC(v1, v2, diff), diff);
 }
 
 void SET_FLAGS_OSZAP_SUB32(CPUX86State *env, uint32_t v1, uint32_t v2,
@@ -176,6 +198,12 @@ void SET_FLAGS_OSZAP_SUB8(CPUX86State *env, uint8_t v1, uint8_t v2,
     SET_FLAGS_OSZAP_8(SUB_COUT_VEC(v1, v2, diff), diff);
 }
 
+void SET_FLAGS_OSZAP_ADD64(CPUX86State *env, uint64_t v1, uint64_t v2,
+                            uint64_t diff)
+{
+    SET_FLAGS_OSZAP_64(ADD_COUT_VEC(v1, v2, diff), diff);
+}
+
 void SET_FLAGS_OSZAP_ADD32(CPUX86State *env, uint32_t v1, uint32_t v2,
                             uint32_t diff)
 {
@@ -194,6 +222,12 @@ void SET_FLAGS_OSZAP_ADD8(CPUX86State *env, uint8_t v1, uint8_t v2,
     SET_FLAGS_OSZAP_8(ADD_COUT_VEC(v1, v2, diff), diff);
 }
 
+
+void SET_FLAGS_OSZAPC_LOGIC64(CPUX86State *env, uint64_t v1, uint64_t v2,
+                              uint64_t diff)
+{
+    SET_FLAGS_OSZAPC_64((uint64_t) 0, diff);
+}
 
 void SET_FLAGS_OSZAPC_LOGIC32(CPUX86State *env, uint32_t v1, uint32_t v2,
                               uint32_t diff)

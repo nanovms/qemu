@@ -86,6 +86,17 @@ void hvf_handle_io(struct CPUState *cpu, uint16_t port, void *data,
         FLAGS_FUNC##32(env, v1, v2, diff);          \
         break;                                      \
     }                                               \
+    case 8:                                        \
+    {                                               \
+        uint64_t v1 = (uint64_t)decode->op[0].val;  \
+        uint64_t v2 = (uint64_t)decode->op[1].val;  \
+        uint64_t diff = v1 cmd v2;                  \
+        if (save_res) {                              \
+            write_val_ext(env, decode->op[0].ptr, diff, 8); \
+        } \
+        FLAGS_FUNC##64(env, v1, v2, diff);          \
+        break;                                      \
+    }                                               \
     default:                                        \
         VM_PANIC("bad size\n");                    \
     }                                                   \
@@ -315,13 +326,15 @@ static void exec_xor(struct CPUX86State *env, struct x86_decode *decode)
 static void exec_neg(struct CPUX86State *env, struct x86_decode *decode)
 {
     /*EXEC_2OP_FLAGS_CMD(env, decode, -, SET_FLAGS_OSZAPC_SUB, false);*/
-    int32_t val;
+    int64_t val;
     fetch_operands(env, decode, 2, true, true, false);
 
     val = 0 - sign(decode->op[1].val, decode->operand_size);
     write_val_ext(env, decode->op[1].ptr, val, decode->operand_size);
 
-    if (4 == decode->operand_size) {
+    if (8 == decode->operand_size) {
+        SET_FLAGS_OSZAPC_SUB64(env, 0, 0 - val, val);
+    } else if (4 == decode->operand_size) {
         SET_FLAGS_OSZAPC_SUB32(env, 0, 0 - val, val);
     } else if (2 == decode->operand_size) {
         SET_FLAGS_OSZAPC_SUB16(env, 0, 0 - val, val);
